@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <!-- 引入 ECharts 文件 -->    
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=CHMKtgBvVzGBKtM9ayW5f0zLOpZYrtVH"></script>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/echarts.min.js"></script>
+    <script src="/static/js/dark.js"></script>
+    <script src="/static/js/router.js"></script>
+    <script src="/static/js/optioninit.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts-stat/dist/ecStat.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/extension/dataTool.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/map/js/china.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/map/js/world.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/extension/bmap.min.js"></script>
+
+  </head>
+  <body>
+    <!-- <div id="main" class="chart" style="width: 100%; height: 450px;"></div> -->
+    <div id="main" class="chart" style="margin-left:5%;width: 90%; height: 450px;"></div>
+    <div id="parallel" class="chart" style="width: 100%; height: 230px;"></div>
+    <div id="hidebg"></div>
+    <div id="hidebox" onClick="hidebox();">
+        <div>
+            <p class="box-head">添加雷达图和评价日历图</p>
+            <div class="hidebox-hr"><hr/></div>
+            <!-- <div class="boxbtn">
+               <a class="clickbtn cancel" href="javascript:void(0);" onclick="hidebox();">取消</a>
+            </div> -->
+        </div>
+    </div>
+  </body>
+</html>
+<script>
+  function getdetailInfo() {
+    console.log('click')
+    // 跳转到房源的详细信息页面
+    var hideobj=document.getElementById("hidebg");
+    hidebg.style.display="block"; //显示隐藏层
+    hidebg.style.height=document.body.clientHeight+"px"; //设置隐藏层的高度为当前页面高度
+    document.getElementById("hidebox").style.display="block"; //显示弹出层
+  }
+  function hidebox() {
+    document.getElementById("hidebg").style.display="none";
+    document.getElementById("hidebox").style.display="none";
+  }
+// TODO： 添加筛选机制
+
+  let myChart = echarts.init(document.getElementById("main"));
+  let myChart2 = echarts.init(document.getElementById("parallel"));
+  let bmap = null;
+  let initOptionSet = null;
+  let reset = false;
+  // let myChart = echarts.init(document.getElementById("main"), "dark");
+  myChart.showLoading();
+  myChart2.showLoading();
+  fetch("/geojson")
+    .then((response) => response.json())
+    .then(function (res) {
+      const geojsonData = res;
+      for (let i in geojsonData.features) {
+        geojsonData.features[i].properties.name = geojsonData.features[i].properties.neighbourhood.split(' / ')[0]
+      }
+
+      fetch("neighbourhood_count")
+      .then((response) => response.json())
+      .then(function (res) {
+        const neigData = res;
+        const show_neig = []
+        for (let key in neigData){
+          show_neig.push({
+            name: key.split(' / ')[0],
+            value: neigData[key],
+          })
+        }
+
+        fetch("location_data_title")
+        .then((response) => response.json())
+        .then(function (res) {
+          const pointCname = res.titleCname;
+          const pointTitle = res.title;
+
+          echarts.registerMap('Beijing', geojsonData);
+          initOptionSet = initNeighborhoodMap(myChart, show_neig, pointTitle, pointCname);
+          myChart.hideLoading()
+          myChart.setOption(initOptionSet);
+          bmap = myChart.getModel().getComponent('bmap').getBMap();
+          bmap.setMinZoom(10);
+          bmap.disableDoubleClickZoom();
+          let clickRegion = null;
+          myChart.on('click', function(params) {
+            // console.log(params)
+            if (params.seriesIndex === 0) {
+              const place = params.name;
+              clickRegion = place;
+              plotBoundary(bmap, place);
+            }
+
+          })
+
+          bmap.addEventListener("zoomend", function(e){
+            console.log('zoomed', e)
+            if (e.kz && e.kz === "centerAndZoom" && !clickRegion) {
+              // restart
+              return ;
+            }
+            var ZoomNum = bmap.getZoom();
+            var bs = bmap.getBounds();   //获取可视区域
+            var bssw = bs.getSouthWest();   //可视区域左下角
+            var bsne = bs.getNorthEast();   //可视区域右上角
+            const query = `${bssw.lng},${bsne.lng},${bssw.lat},${bsne.lat}`
+            console.log(query);
+            plotPoint(myChart, clickRegion, query);
+            clickRegion = null;
+          });
+
+        })
+        plotPoint(myChart)
+
+
+
+      })
+    })
+    .catch(function (err) {
+      console.log(err);
+    });
+
+    
+  fetch("data_correlation")
+      .then((response) => response.json())
+      .then(function (res) {
+        const pointTitle = res.title;
+        const data = res.data;
+        console.log(res)
+        myChart2.hideLoading();
+        const option = initParallelOption(pointTitle, data);
+        myChart2.setOption(option)
+      })
+
+function initBefore() {
+  myChart.setOption(initOptionSet);
+  plotPoint(myChart)
+}
+
+</script>
+<style>
+  .chart {
+    text-align: center;
+    z-index: 1;
+  }
+  body {
+    margin: 0px;
+    background-color: rgb(0, 1, 3);
+  }
+
+  .btn {
+    box-shadow: 0px 0px 0px 0px #3dc21b;
+    background-color:#44c767;
+    border-radius:28px;
+    border:1px solid #18ab29;
+    display:inline-block;
+    cursor:pointer;
+    color:#ffffff;
+    font-family:Arial;
+    font-size:17px;
+    padding:5px 12px;
+    text-decoration:none;
+    text-shadow:0px 1px 0px #2f6627;
+  }
+  .btn:hover {
+    background-color:#5cbf2a;
+  }
+  .btn:active {
+    position:relative;
+    top:1px;
+  }
+  #hidebg { position:absolute;left:0px;top:0px;
+    background-color:#000;
+    width:100%;  /*宽度设置为100%，这样才能使隐藏背景层覆盖原页面*/
+    filter:alpha(opacity=60);  /*设置透明度为60%*/
+    opacity:0.6;  /*非IE浏览器下设置透明度为60%*/
+    display:none; /* http://www.jb51.net */
+    z-Index:20;
+}
+#hidebox { position:fixed;
+           _position: absolute;
+           margin:0;
+           width:400px;
+           height:600px;
+           top:20%;
+           left:35%;
+           background-color:#fff;
+           display:none;
+           cursor:pointer;
+           z-Index:30;
+           text-align: center;
+ 
+        }
+#content {
+          text-align:center;
+          cursor:pointer;
+          z-Index:10;
+          }
+.box-head{
+     font-size: 18px;
+     padding-top: 18px;
+     padding-bottom: 10px;
+}
+.box-textarea{
+    font-size: 14px;
+    padding-top: 30px;
+    padding-bottom: 32px;
+}
+.hidebox-hr{
+    width: 384px;
+    text-align: center;
+    /* padding: 0; */
+    padding-left: 8px;
+}
+.clickbtn{
+    display: block;
+    width: 107px;
+    height: 33px;
+    border-radius: 3px;
+    font-size: 18px;
+}
+.cancel{
+    background-color: #ededed;
+    float: left;
+    margin-left: 88px;
+}
+.confirm{
+    background-color:#00aed8;
+    color: #ffffff;
+    float: left;
+    margin-left: 22px;
+}
+.boxbtn{
+    width: 100%;
+    height: 33px;
+    line-height: 33px;
+}
+</style>
