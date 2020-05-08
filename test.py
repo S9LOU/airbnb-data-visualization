@@ -7,6 +7,10 @@ import numpy as np
 #%%v
 listing_simple = pd.read_csv('./static/data/listings.csv')
 neighbourhood = pd.read_csv('./static/data/neighbourhoods.csv')
+listing_all = pd.read_csv('./static/data/detail/listings.csv')
+review_all = pd.read_csv('./static/data/detail/reviews.csv')
+# calendar_all = pd.read_csv('./static/data/detail/calendar.csv')
+
 #%%neighbourhood
 all_neighbourhood = list(neighbourhood['neighbourhood'])
 res = {}
@@ -57,3 +61,133 @@ for i in [100, 200, 300, 400, 500, 1000, 2000, 5000]:
     t0 = len(listing_simple[listing_simple['number_of_reviews'] < i])
 
 # %%
+listing_id = '3649223'
+
+listing_id = int(listing_id)
+one = listing_all[listing_all['id'] == listing_id]
+one = one.fillna(0)
+res = one.to_dict(orient='records')[0]
+max(listing_all['review_scores_accuracy'])
+
+a = ["review_scores_rating",
+"review_scores_accuracy",
+"review_scores_cleanliness",
+"review_scores_checkin",
+"review_scores_communication",
+"review_scores_location",
+"review_scores_value"]
+for i in a:
+    print(max(listing_all[i]))
+
+#%%
+
+listing_id = '3649223'
+
+listing_id = int(listing_id)
+oneReviews = review_all[review_all['listing_id'] == listing_id]
+oneReviews = oneReviews[oneReviews['date'] > '2019-12-01']
+listReviews = oneReviews.values.tolist()
+resdata = []
+for i in range(len(listReviews)):
+    resdata.append([listReviews[i][2], listReviews[i][4], listReviews[i][5]])
+resdata
+#%%
+listing_all.head()
+
+# %%
+len(listing_all[listing_all['availability_365'] > 0])
+listing_all['availability_60'].head()
+# %%
+len(calendar_all[calendar_all['available'] == 't'])
+
+# %%
+print(len(listing_all))
+co = listing_all[listing_all['review_scores_rating']>99]
+co['has_availability'] = co['has_availability'].map(dict(t=1, f=0)) 
+co['cleaning_fee'] = co['cleaning_fee'].map(dict(t=1, f=0)) 
+co['instant_bookable'] = co['instant_bookable'].map(dict(t=1, f=0)) 
+co['weekly_price'] = pd.to_numeric(co['weekly_price'].str.replace(r'$', '').str.replace(r',', ''))
+co['price'] = pd.to_numeric(co['price'].str.replace(r'$', '').str.replace(r',', ''))
+co['monthly_price'] = pd.to_numeric(co['monthly_price'].str.replace(r'$', '').str.replace(r',', ''))
+
+co = co.fillna(0)
+cotype = [
+ 'host_listings_count',
+ 'host_total_listings_count',
+ 'accommodates',
+ 'bathrooms',
+ 'bedrooms',
+ 'beds',
+ 'square_feet',
+ 'price',
+ 'weekly_price',
+ 'monthly_price',
+ 'cleaning_fee',
+ 'guests_included',
+ 'minimum_nights',
+ 'maximum_nights',
+ 'minimum_minimum_nights',
+ 'maximum_minimum_nights',
+ 'minimum_maximum_nights',
+ 'maximum_maximum_nights',
+ 'minimum_nights_avg_ntm',
+ 'maximum_nights_avg_ntm',
+ 'has_availability',
+ 'availability_30',
+ 'availability_60',
+ 'availability_90',
+ 'availability_365',
+ 'number_of_reviews',
+ 'number_of_reviews_ltm',
+ 'review_scores_rating',
+ 'review_scores_accuracy',
+ 'review_scores_cleanliness',
+ 'review_scores_checkin',
+ 'review_scores_communication',
+ 'review_scores_location',
+ 'review_scores_value',
+ 'instant_bookable',
+ 'calculated_host_listings_count',
+ 'calculated_host_listings_count_entire_homes',
+ 'calculated_host_listings_count_private_rooms',
+ 'calculated_host_listings_count_shared_rooms',
+ 'reviews_per_month']
+co = co[cotype]
+realtion = co.corr().fillna(0)
+realtion.values.tolist()
+# %%
+listing_all['calculated_host_listings_count']
+# .str.replace(r'$', '').str.replace(r',', '')
+co['review_scores_rating']
+#%%
+import jieba
+import re
+from collections import Counter
+co = listing_all[listing_all['review_scores_rating']>99]
+tmp = ' '.join(co['summary'].dropna().values.tolist())
+tmp = re.sub(r"[0-9\s\.\!\/_,$%^*()?;；:-【】+\"\']+|[｡+——！，;:。？、~@#￥%……&*（）]+", " ", tmp) 
+data = jieba.cut(tmp,cut_all=True)
+stop = open('./static/data/stopwords.txt', 'r+', encoding='utf-8')
+stopword = stop.read().split("\n")
+# for i in data:
+#     if i == ' ':
+#         continue;
+#     if not(i.strip() in stopword) and (len(i.strip()) > 1) and not(i.strip() in wordlist) :
+#         wordlist.append(i)
+#     # break
+wordcount = dict(Counter(data))
+
+# %%
+wordcountres = []
+for i in wordcount:
+    if not(i.strip() in stopword) and (len(i.strip()) > 1) :
+        wordcountres.append({
+            'name': i,
+            'value': wordcount[i]
+        })
+
+
+# %%
+wordcountres  
+f = open("./static/data/csvname.json", encoding='utf-8')
+csvname = json.load(f)

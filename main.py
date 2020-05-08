@@ -14,6 +14,8 @@ CORS(app)
 listing_simple = pd.read_csv('./static/data/listings.csv')
 neighbourhood = pd.read_csv('./static/data/neighbourhoods.csv')
 listing_all = pd.read_csv('./static/data/detail/listings.csv')
+review_all = pd.read_csv('./static/data/detail/reviews.csv')
+
 csvf = open("./static/data/csvname.json", encoding='utf-8')
 cname = json.load(csvf)
 
@@ -22,6 +24,19 @@ def read_data():
     f = open("./static/data/neighbourhoods.geojson", encoding='utf-8')
     res = json.load(f)
     return json.dumps(res, ensure_ascii=False)
+
+@app.route("/json/subway",methods=["GET"])
+def read_data_subway():
+    # f = open("./static/data/subway.json", encoding='utf-8')
+    # res = {}
+    # res['subway'] = json.load(f)
+    # f2 = open("./static/data/subwayTime.json", encoding='utf-8')
+    # res['subwayInfo'] = json.load(f2)
+
+    f = open("./static/data/subway.geojson", encoding='utf-8')
+    res = json.load(f)
+    return json.dumps(res, ensure_ascii=False)
+
 
 @app.route("/neighbourhood_count",methods=["GET"])
 def get_neighbourhood_count():
@@ -78,6 +93,104 @@ def get_data_correlation():
 
     res['data'] = tmp.values.tolist()
     res['title'] = cols
+    return json.dumps(res, ensure_ascii=False)
+
+
+@app.route("/detail",methods=["GET"])
+def get_detail():
+    listing_id = request.args.get('id')
+    listing_id = int(listing_id)
+    one = listing_all[listing_all['id'] == listing_id]
+    one = one.fillna(0)
+    res = one.to_dict(orient='records')[0]
+    return json.dumps(res, ensure_ascii=False)
+
+
+@app.route("/one_reviews",methods=["GET"])
+def get_one_listing_reviews():
+    listing_id = request.args.get('id')
+    listing_id = int(listing_id)
+    oneReviews = review_all[review_all['listing_id'] == listing_id]
+    oneReviews = oneReviews[oneReviews['date'] > '2019-12-01']
+    listReviews = oneReviews.values.tolist()
+    resdata = []
+    for i in range(len(listReviews)):
+        resdata.append([listReviews[i][2], 1, listReviews[i][4], listReviews[i][5]])
+    # TODO: 添加对评论的情感分析
+    res = {
+        'smile': resdata,
+        'sad': []
+    }
+    return json.dumps(res, ensure_ascii=False)
+
+@app.route("/tenant/relation",methods=["GET"])
+def get_tenant_relation():
+    co = listing_all[listing_all['review_scores_rating']>99]
+    co['has_availability'] = co['has_availability'].map(dict(t=1, f=0)) 
+    co['cleaning_fee'] = co['cleaning_fee'].map(dict(t=1, f=0)) 
+    co['instant_bookable'] = co['instant_bookable'].map(dict(t=1, f=0)) 
+    co['weekly_price'] = pd.to_numeric(co['weekly_price'].str.replace(r'$', '').str.replace(r',', ''))
+    co['price'] = pd.to_numeric(co['price'].str.replace(r'$', '').str.replace(r',', ''))
+    co['monthly_price'] = pd.to_numeric(co['monthly_price'].str.replace(r'$', '').str.replace(r',', ''))
+
+    co = co.fillna(0)
+    cotype = [
+    # 'host_listings_count',
+    # 'host_total_listings_count',
+    'accommodates',
+    'bathrooms',
+    'bedrooms',
+    'beds',
+    # 'square_feet',
+    'price',
+    'weekly_price',
+    'monthly_price',
+    # 'cleaning_fee',
+    'guests_included',
+    'minimum_nights',
+    'maximum_nights',
+    # 'minimum_minimum_nights',
+    # 'maximum_minimum_nights',
+    # 'minimum_maximum_nights',
+    # 'maximum_maximum_nights',
+    # 'minimum_nights_avg_ntm',
+    # 'maximum_nights_avg_ntm',
+    # 'has_availability',
+    # 'availability_30',
+    # 'availability_60',
+    # 'availability_90',
+    # 'availability_365',
+    'number_of_reviews',
+    # 'number_of_reviews_ltm',
+    'review_scores_rating',
+    # 'review_scores_accuracy',
+    # 'review_scores_cleanliness',
+    # 'review_scores_checkin',
+    # 'review_scores_communication',
+    # 'review_scores_location',
+    # 'review_scores_value',
+    'instant_bookable',
+    'calculated_host_listings_count',
+    # 'calculated_host_listings_count_entire_homes',
+    # 'calculated_host_listings_count_private_rooms',
+    # 'calculated_host_listings_count_shared_rooms',
+    'reviews_per_month']
+    co = co[cotype]
+    realtion = co.corr().fillna(0)
+    res = {}
+    tmp = realtion.values.tolist()
+    res['title'] = cotype
+    data = []
+    for i in range(len(tmp)):
+        for j in range(len(tmp)):
+            data.append([i, j, tmp[i][j]])
+    res['data'] = data
+    f = open("./static/data/tenant_wordcount.json", encoding='utf-8')
+    res['wordcount'] = json.load(f)
+    f = open("./static/data/csvname.json", encoding='utf-8')
+    csvname = json.load(f)['listings.csv.gz']
+    title = [csvname[i] for i in cotype]
+    res['ctitle'] = title
     return json.dumps(res, ensure_ascii=False)
 
 

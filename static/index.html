@@ -9,7 +9,7 @@
     <script src="/static/js/echarts.min.js"></script>
     <script src="/static/js/dark.js"></script>
     <script src="/static/js/router.js"></script>
-    <script src="/static/js/optioninit.js"></script>
+    <script src="/static/js/homeOptionInit.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts-stat/dist/ecStat.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/extension/dataTool.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/map/js/china.js"></script>
@@ -24,24 +24,45 @@
     <div id="hidebg"></div>
     <div id="hidebox" onClick="hidebox();">
         <div>
-            <p class="box-head">添加雷达图和评价日历图</p>
+            <p class="box-head" id="title">详细信息</p>
             <div class="hidebox-hr"><hr/></div>
-            <!-- <div class="boxbtn">
-               <a class="clickbtn cancel" href="javascript:void(0);" onclick="hidebox();">取消</a>
-            </div> -->
+            
+          <div id="radarmap" class="chart" style="width: 500px; height: 550px;"></div>
         </div>
     </div>
   </body>
 </html>
 <script>
-  function getdetailInfo() {
-    console.log('click')
+  let radarChart = echarts.init(document.getElementById("radarmap"));
+  function getdetailInfo(id) {
+    console.log('click', id)
     // 跳转到房源的详细信息页面
-    var hideobj=document.getElementById("hidebg");
+    let hideobj=document.getElementById("hidebg");
     hidebg.style.display="block"; //显示隐藏层
     hidebg.style.height=document.body.clientHeight+"px"; //设置隐藏层的高度为当前页面高度
     document.getElementById("hidebox").style.display="block"; //显示弹出层
+    
+    radarChart.showLoading()
+    fetch("/detail?id=" + id)
+    .then((response) => response.json())
+    .then(function (res) {
+      document.getElementById("title").innerHTML=res.name;
+
+      fetch("/one_reviews?id=" + id)
+      .then((response) => response.json())
+      .then(function (reviews) {
+        console.log(res)
+        radarChart.hideLoading()
+        const smile = reviews.smile;
+        const sad = reviews.sad;
+        console.log(reviews)
+        const radarOption = initRadarOption(res, smile, sad);
+        radarChart.setOption(radarOption)
+      })
+    })
+
   }
+
   function hidebox() {
     document.getElementById("hidebg").style.display="none";
     document.getElementById("hidebox").style.display="none";
@@ -176,37 +197,37 @@ function initBefore() {
     position:relative;
     top:1px;
   }
-  #hidebg { position:absolute;left:0px;top:0px;
-    background-color:#000;
-    width:100%;  /*宽度设置为100%，这样才能使隐藏背景层覆盖原页面*/
-    filter:alpha(opacity=60);  /*设置透明度为60%*/
-    opacity:0.6;  /*非IE浏览器下设置透明度为60%*/
-    display:none; /* http://www.jb51.net */
-    z-Index:20;
+#hidebg { 
+  position:absolute;left:0px;top:0px;
+  background-color:#000;
+  width:100%;  /*宽度设置为100%，这样才能使隐藏背景层覆盖原页面*/
+  filter:alpha(opacity=60);  /*设置透明度为60%*/
+  opacity:0.6;  /*非IE浏览器下设置透明度为60%*/
+  display:none; /* http://www.jb51.net */
+  z-Index:20;
 }
-#hidebox { position:fixed;
-           _position: absolute;
-           margin:0;
-           width:400px;
-           height:600px;
-           top:20%;
-           left:35%;
-           background-color:#fff;
-           display:none;
-           cursor:pointer;
-           z-Index:30;
-           text-align: center;
- 
-        }
+#hidebox {
+  position:fixed;
+  _position: absolute;
+  background-color:#161627;
+  margin:0;
+  width:500px;
+  height:600px;
+  top:5%;
+  left:30%;
+  display:none;
+  cursor:pointer;
+  z-Index:30;
+  text-align: center;
+  }
 #content {
-          text-align:center;
-          cursor:pointer;
-          z-Index:10;
-          }
+  text-align:center;
+  cursor:pointer;
+  z-Index:10;
+}
 .box-head{
-     font-size: 18px;
-     padding-top: 18px;
-     padding-bottom: 10px;
+  font-size: 18px;
+  color: #fff;
 }
 .box-textarea{
     font-size: 14px;
@@ -214,7 +235,7 @@ function initBefore() {
     padding-bottom: 32px;
 }
 .hidebox-hr{
-    width: 384px;
+    width: 454px;
     text-align: center;
     /* padding: 0; */
     padding-left: 8px;
@@ -231,12 +252,7 @@ function initBefore() {
     float: left;
     margin-left: 88px;
 }
-.confirm{
-    background-color:#00aed8;
-    color: #ffffff;
-    float: left;
-    margin-left: 22px;
-}
+
 .boxbtn{
     width: 100%;
     height: 33px;

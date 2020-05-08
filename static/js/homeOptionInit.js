@@ -152,11 +152,11 @@ function initNeighborhoodMap (myChart,data, pointTitle, pointCname){
           max: 80000,
           pieces: [
             {gt: 5000}, 
-            {gt: 2000, lt:5000},
-            {gt: 1000, lt: 2000},
+            {gt: 1000, lt: 5000},
             {gt: 500, lt: 1000},
             {gt: 300, lt: 500},
             {gt: 200, lt: 300},
+            {gt: 100, lt: 200},
             {lt: 100}
           ],
           // calculable: true,
@@ -212,7 +212,7 @@ function initNeighborhoodMap (myChart,data, pointTitle, pointCname){
             else if (params.seriesIndex == 1){
               const onedata = params.data;
               let text = `<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 18px;padding-bottom: 7px;margin-bottom: 7px">${onedata[3]}`
-              text = `${text}<br> <button class="btn" id="detail" onclick="getdetailInfo()">查看详情</button></div>`
+              text = `${text}<br> <button class="btn" id="detail" onclick="getdetailInfo('${onedata[2]}')">查看评价</button></div>`
               for (let i = 0 ; i < onedata.length; i ++) {
                 if (i == 3) continue;
                 text = `${text}${pointCname[pointTitle[i]]}: ${onedata[i]}<br>`
@@ -514,6 +514,161 @@ function initParallelOption(pointTitle, data) {
             blendMode: 'lighter',
             data: data
         }
+    ]
+  };
+  return option;
+}
+
+function initRadarOption(data, smileData, sadData) {
+    
+  const showdata = [[data.review_scores_accuracy,
+  data.review_scores_cleanliness,
+  data.review_scores_checkin,
+  data.review_scores_communication,
+  data.review_scores_location,
+  data.review_scores_value]]
+  const sad = "path://M517.12 53.248c63.488 0 123.221 12.117 179.2 36.352 55.979 24.235 104.619 57.003 145.92 98.304 41.301 41.301 74.069 89.941 98.304 145.92 24.235 55.979 36.352 115.712 36.352 179.2 0 63.488-12.117 123.221-36.352 179.2-24.235 55.979-57.003 104.619-98.304 145.92-41.301 41.301-89.941 74.069-145.92 98.304-55.979 24.235-115.712 36.352-179.2 36.352-63.488 0-123.221-12.117-179.2-36.352-55.979-24.235-104.619-57.003-145.92-98.304-41.301-41.301-74.069-89.941-98.304-145.92-24.235-55.979-36.352-115.712-36.352-179.2 0-63.488 12.117-123.221 36.352-179.2 24.235-55.979 57.003-104.619 98.304-145.92 41.301-41.301 89.941-74.069 145.92-98.304 55.979-24.235 115.712-36.352 179.2-36.352zM663.552 261.12c-10.24 0-19.627 2.219-28.16 6.656-8.533 4.437-16.213 10.581-23.04 18.432-6.827 7.851-12.117 17.067-15.872 27.648-3.755 10.581-5.632 21.675-5.632 33.28 0 23.893 7.168 44.373 21.504 61.44 14.336 17.067 31.403 25.6 51.2 25.6 19.797 0 36.864-8.533 51.2-25.6 14.336-17.067 21.504-37.547 21.504-61.44 0-11.605-1.877-22.699-5.632-33.28s-9.045-19.797-15.872-27.648c-6.827-7.851-14.507-13.995-23.04-18.432-8.533-4.437-17.92-6.656-28.16-6.656z m-289.792 0c-19.797 0-36.693 8.363-50.688 25.088-13.995 16.725-20.992 37.035-20.992 60.928s6.997 44.373 20.992 61.44c13.995 17.067 30.891 25.6 50.688 25.6 19.797 0 36.523-8.533 50.176-25.6 13.653-17.067 20.48-37.547 20.48-61.44s-6.827-44.203-20.48-60.928c-13.653-16.725-30.379-25.088-50.176-25.088z m146.432 340.992c-34.133 0-66.56 3.243-97.28 9.728-30.72 6.485-58.368 15.701-82.944 27.648s-45.397 25.771-62.464 41.472-29.013 32.768-35.84 51.2c-0.683 0.683-1.024 1.365-1.024 2.048-0.683 2.048-1.024 4.949-1.024 8.704 0 3.755 0.853 7.68 2.56 11.776s4.096 7.851 7.168 11.264c3.072 3.413 7.339 5.461 12.8 6.144 17.067-18.432 37.888-35.157 62.464-50.176 21.163-12.971 47.616-24.747 79.36-35.328 31.744-10.581 69.803-15.872 114.176-15.872 45.056 0 83.968 5.291 116.736 15.872s60.075 22.357 81.92 35.328c25.259 15.019 46.421 31.744 63.488 50.176 11.605-3.413 18.261-9.728 19.968-18.944 1.707-9.216 1.877-15.531 0.512-18.944-1.365-3.413-2.389-5.803-3.072-7.168-0.683-1.365-1.024-2.389-1.024-3.072-17.749-36.864-51.2-66.389-100.352-88.576-49.152-22.187-107.861-33.28-176.128-33.28z"
+  const smile = "path://M512 0C227.555556 0 0 227.555556 0 512s227.555556 512 512 512 512-227.555556 512-512-227.555556-512-512-512z m119.466667 307.2c11.377778-11.377778 28.444444-17.066667 39.822222-17.066667 17.066667 0 28.444444 5.688889 39.822222 17.066667 11.377778 11.377778 17.066667 28.444444 17.066667 39.822222 0 22.755556-11.377778 39.822222-28.444445 51.2-17.066667 11.377778-39.822222 11.377778-62.577777 0s-28.444444-28.444444-28.444445-51.2c5.688889-11.377778 11.377778-28.444444 22.755556-39.822222z m-324.266667 0c11.377778-11.377778 28.444444-17.066667 39.822222-17.066667 17.066667 0 28.444444 5.688889 39.822222 17.066667s17.066667 28.444444 17.066667 39.822222c0 34.133333-28.444444 62.577778-62.577778 62.577778s-51.2-28.444444-51.2-62.577778c0-11.377778 5.688889-28.444444 17.066667-39.822222zM512 870.4c-170.666667 0-312.888889-119.466667-341.333333-267.377778-5.688889-34.133333 22.755556-45.511111 51.2-39.822222 91.022222 28.444444 193.422222 39.822222 290.133333 39.822222 96.711111 0 193.422222-11.377778 290.133333-39.822222 28.444444-5.688889 56.888889 0 51.2 34.133333-28.444444 147.911111-170.666667 273.066667-341.333333 273.066667z"
+  option = {
+    backgroundColor: '#161627',
+    title: {
+        text: '综合评价： '+ data.review_scores_rating + '分',
+        left: 'left',
+        textStyle: {
+            color: '#fff'
+        },
+        subtext: '点击查看房源原网页',
+        sublink: data.listing_url,
+        subtextStyle: {
+          color: '#eee'
+        }
+    },
+    tooltip: {},
+    radar: {
+        indicator: [ 
+            {name: '准确度评分', max: 10},
+            {name: '洁净度评分', max: 10},
+            {name: '入住评分', max: 10},
+            {name: '沟通评分', max: 10},
+            {name: '地理位置评分', max: 10},
+            {name: '性价比评分', max: 10}
+        ],
+        shape: 'circle',
+        splitNumber: 5,
+        radius: '30%',
+        center: ['50%', '30%'],
+        name: {
+            textStyle: {
+                color: 'rgb(238, 197, 102)'
+            }
+        },
+        splitLine: {
+            lineStyle: {
+                color: [
+                    'rgba(238, 197, 102, 0.1)', 'rgba(238, 197, 102, 0.2)',
+                    'rgba(238, 197, 102, 0.4)', 'rgba(238, 197, 102, 0.6)',
+                    'rgba(238, 197, 102, 0.8)', 'rgba(238, 197, 102, 1)'
+                ].reverse()
+            }
+        },
+        splitArea: {
+            show: false
+        },
+        axisLine: {
+            lineStyle: {
+                color: 'rgba(238, 197, 102, 0.5)'
+            }
+        }
+    },
+    calendar: [{
+      left: 'center',
+      top: '60%',
+      cellSize: 30,
+      splitLine: {
+          show: true,
+          lineStyle: {
+              color: 'rgb(238, 197, 102)',
+              width: 3,
+              type: 'solid'
+          }
+      },
+      yearLabel: {
+          formatter: '最近3个月评价',
+          textStyle: {
+              color: '#fff',
+              fontSize: 14
+          }
+      },
+      itemStyle: {
+          color: '#323c48',
+          borderWidth: 1,
+          borderColor: 'rgb(238, 197, 102)'
+      },
+      dayLabel: {
+        color: 'rgb(238, 197, 102)',
+      },
+      monthLabel: {
+        color: 'rgb(238, 197, 102)',
+      },
+      range: ['2019-12-01', '2020-02-28'],
+    }],
+    series: [
+        {
+            name: '评分',
+            type: 'radar',
+            data: showdata,
+            symbol: 'circle',
+            itemStyle: {
+                color: '#F9713C'
+            },
+            areaStyle: {
+                opacity: 0.1
+            }
+        },
+        {
+            name: '喜欢',
+            type: 'scatter',
+            coordinateSystem: 'calendar',
+            data: smileData,
+            symbolSize: 20,
+            itemStyle: {
+                color: '#FF3030'
+            },
+            symbol: smile,
+            tooltip: {
+              position: 'top',
+              formatter: function(params) {
+                const show = params.data;
+                const text = `${show[0]}<br>
+                <div style="display:block;word-break: break-all;word-wrap: break-word;white-space:pre-wrap">
+                ${show[3]}</div>
+                <br>--- by ${show[2]}`
+                return text;
+              }
+            }
+        },
+        {
+            name: '不喜欢',
+            type: 'scatter',
+            coordinateSystem: 'calendar',
+            data: sadData,
+            symbolSize: 20,
+            itemStyle: {
+                color: '#63B8FF'
+            },
+            symbol: sad,
+            tooltip: {
+              position: 'top',
+              formatter: function(params) {
+                const show = params.data;
+                const text = `${show[0]}<br>
+                <div style="display:block;word-break: break-all;word-wrap: break-word;white-space:pre-wrap">
+                ${show[3]}</div>
+                <br>--- by ${show[2]}`
+                return text;
+              }
+            }
+        },
     ]
   };
   return option;
