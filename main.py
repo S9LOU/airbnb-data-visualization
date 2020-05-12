@@ -85,14 +85,28 @@ def get_location_data_title():
 
 @app.route("/data_correlation",methods=["GET"])
 def get_data_correlation():
-    # TODO: 添加相关性分析，返回的数据将相关性高的放在一块
     cols = list(listing_all)
     res = {}
     tmp = listing_all.sample(500)
-    tmp = tmp.dropna(axis=0,how='all').fillna(0)
+    tmp = tmp.dropna(axis=0,how='all').dropna(axis=1,how='all')
+    tmp['has_availability'] = tmp['has_availability'].map(dict(t=1, f=0)) 
+    tmp['cleaning_fee'] = tmp['cleaning_fee'].map(dict(t=1, f=0)) 
+    tmp['instant_bookable'] = tmp['instant_bookable'].map(dict(t=1, f=0)) 
+    tmp['weekly_price'] = pd.to_numeric(tmp['weekly_price'].str.replace(r'$', '').str.replace(r',', ''))
+    tmp['price'] = pd.to_numeric(tmp['price'].str.replace(r'$', '').str.replace(r',', ''))
+    tmp['monthly_price'] = pd.to_numeric(tmp['monthly_price'].str.replace(r'$', '').str.replace(r',', ''))
+    tmp = tmp.fillna(0)
+
+    realtion = tmp.corr()
+    realtion = realtion.dropna(how='all').dropna(axis=1,how='all').fillna(0)
+    cotype = list(realtion)
+    tmp = tmp[cotype]
+    f = open("./static/data/csvname.json", encoding='utf-8')
+    csvname = json.load(f)['listings.csv.gz']
+    title = [csvname[i] for i in cotype]
 
     res['data'] = tmp.values.tolist()
-    res['title'] = cols
+    res['title'] = title
     return json.dumps(res, ensure_ascii=False)
 
 
@@ -135,46 +149,46 @@ def get_tenant_relation():
 
     co = co.fillna(0)
     cotype = [
-    # 'host_listings_count',
-    # 'host_total_listings_count',
-    'accommodates',
-    'bathrooms',
-    'bedrooms',
-    'beds',
-    # 'square_feet',
-    'price',
-    'weekly_price',
-    'monthly_price',
-    # 'cleaning_fee',
-    'guests_included',
-    'minimum_nights',
-    'maximum_nights',
-    # 'minimum_minimum_nights',
-    # 'maximum_minimum_nights',
-    # 'minimum_maximum_nights',
-    # 'maximum_maximum_nights',
-    # 'minimum_nights_avg_ntm',
-    # 'maximum_nights_avg_ntm',
-    # 'has_availability',
-    # 'availability_30',
-    # 'availability_60',
-    # 'availability_90',
-    # 'availability_365',
-    'number_of_reviews',
-    # 'number_of_reviews_ltm',
-    'review_scores_rating',
-    # 'review_scores_accuracy',
-    # 'review_scores_cleanliness',
-    # 'review_scores_checkin',
-    # 'review_scores_communication',
-    # 'review_scores_location',
-    # 'review_scores_value',
-    'instant_bookable',
-    'calculated_host_listings_count',
-    # 'calculated_host_listings_count_entire_homes',
-    # 'calculated_host_listings_count_private_rooms',
-    # 'calculated_host_listings_count_shared_rooms',
-    'reviews_per_month']
+        # 'host_listings_count',
+        # 'host_total_listings_count',
+        'accommodates',
+        'bathrooms',
+        'bedrooms',
+        'beds',
+        # 'square_feet',
+        'price',
+        'weekly_price',
+        'monthly_price',
+        # 'cleaning_fee',
+        'guests_included',
+        'minimum_nights',
+        'maximum_nights',
+        # 'minimum_minimum_nights',
+        # 'maximum_minimum_nights',
+        # 'minimum_maximum_nights',
+        # 'maximum_maximum_nights',
+        # 'minimum_nights_avg_ntm',
+        # 'maximum_nights_avg_ntm',
+        # 'has_availability',
+        # 'availability_30',
+        # 'availability_60',
+        # 'availability_90',
+        # 'availability_365',
+        'number_of_reviews',
+        # 'number_of_reviews_ltm',
+        'review_scores_rating',
+        # 'review_scores_accuracy',
+        # 'review_scores_cleanliness',
+        # 'review_scores_checkin',
+        # 'review_scores_communication',
+        # 'review_scores_location',
+        # 'review_scores_value',
+        'instant_bookable',
+        'calculated_host_listings_count',
+        # 'calculated_host_listings_count_entire_homes',
+        # 'calculated_host_listings_count_private_rooms',
+        # 'calculated_host_listings_count_shared_rooms',
+        'reviews_per_month']
     co = co[cotype]
     realtion = co.corr().fillna(0)
     res = {}
@@ -194,6 +208,76 @@ def get_tenant_relation():
     return json.dumps(res, ensure_ascii=False)
 
 
+@app.route("/owner/relation",methods=["GET"])
+def get_owner_relation():
+    co = listing_all[listing_all['reviews_per_month']>3]
+    co['has_availability'] = co['has_availability'].map(dict(t=1, f=0)) 
+    co['cleaning_fee'] = co['cleaning_fee'].map(dict(t=1, f=0)) 
+    co['instant_bookable'] = co['instant_bookable'].map(dict(t=1, f=0)) 
+    co['weekly_price'] = pd.to_numeric(co['weekly_price'].str.replace(r'$', '').str.replace(r',', ''))
+    co['price'] = pd.to_numeric(co['price'].str.replace(r'$', '').str.replace(r',', ''))
+    co['monthly_price'] = pd.to_numeric(co['monthly_price'].str.replace(r'$', '').str.replace(r',', ''))
+
+    co = co.fillna(0)
+    cotype = [
+        # 'host_listings_count',
+        # 'host_total_listings_count',
+        'accommodates',
+        'bathrooms',
+        'bedrooms',
+        'beds',
+        # 'square_feet',
+        'price',
+        'weekly_price',
+        'monthly_price',
+        # 'cleaning_fee',
+        'guests_included',
+        'minimum_nights',
+        'maximum_nights',
+        # 'minimum_minimum_nights',
+        # 'maximum_minimum_nights',
+        # 'minimum_maximum_nights',
+        # 'maximum_maximum_nights',
+        # 'minimum_nights_avg_ntm',
+        # 'maximum_nights_avg_ntm',
+        # 'has_availability',
+        # 'availability_30',
+        # 'availability_60',
+        # 'availability_90',
+        # 'availability_365',
+        'number_of_reviews',
+        # 'number_of_reviews_ltm',
+        'review_scores_rating',
+        # 'review_scores_accuracy',
+        # 'review_scores_cleanliness',
+        # 'review_scores_checkin',
+        # 'review_scores_communication',
+        # 'review_scores_location',
+        # 'review_scores_value',
+        'instant_bookable',
+        'calculated_host_listings_count',
+        # 'calculated_host_listings_count_entire_homes',
+        # 'calculated_host_listings_count_private_rooms',
+        # 'calculated_host_listings_count_shared_rooms',
+        'reviews_per_month']
+    co = co[cotype]
+    realtion = co.corr().fillna(0)
+    res = {}
+    tmp = realtion.values.tolist()
+    res['title'] = cotype
+    data = []
+    for i in range(len(tmp)):
+        for j in range(len(tmp)):
+            data.append([i, j, tmp[i][j]])
+    res['data'] = data
+    f = open("./static/data/owner_wordcount.json", encoding='utf-8')
+    res['wordcount'] = json.load(f)
+    f = open("./static/data/csvname.json", encoding='utf-8')
+    csvname = json.load(f)['listings.csv.gz']
+    title = [csvname[i] for i in cotype]
+    res['ctitle'] = title
+    return json.dumps(res, ensure_ascii=False)
+    
 @app.route('/')
 def index():
     return flask.send_from_directory('static', 'index.html')

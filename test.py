@@ -159,7 +159,7 @@ realtion.values.tolist()
 listing_all['calculated_host_listings_count']
 # .str.replace(r'$', '').str.replace(r',', '')
 co['review_scores_rating']
-#%%
+#%% 租客
 import jieba
 import re
 from collections import Counter
@@ -191,3 +191,53 @@ for i in wordcount:
 wordcountres  
 f = open("./static/data/csvname.json", encoding='utf-8')
 csvname = json.load(f)
+csvname
+
+#%% 房东
+import jieba
+import re
+from collections import Counter
+co = listing_all[listing_all['reviews_per_month']>3]
+tmp = ' '.join(co['summary'].dropna().values.tolist())
+tmp = re.sub(r"[0-9\s\.\!\/_,$%^*()?;；:-【】+\"\']+|[｡+——！，;:。？、~@#￥%……&*（）]+", " ", tmp) 
+data = jieba.cut(tmp,cut_all=True)
+stop = open('./static/data/stopwords.txt', 'r+', encoding='utf-8')
+stopword = stop.read().split("\n")
+wordcount = dict(Counter(data))
+
+wordcountres = []
+for i in wordcount:
+    if not(i.strip() in stopword) and (len(i.strip()) > 1) :
+        wordcountres.append({
+            'name': i,
+            'value': wordcount[i]
+        })
+
+# %%
+wordcountres
+with open('./static/data/owner_wordcount.json','w') as fp:
+    json.dump(wordcountres, fp)
+
+# %%
+
+tmp = listing_all.sample(500)
+tmp = tmp.dropna(axis=0,how='all').dropna(axis=1,how='all')
+tmp['has_availability'] = tmp['has_availability'].map(dict(t=1, f=0)) 
+tmp['cleaning_fee'] = tmp['cleaning_fee'].map(dict(t=1, f=0)) 
+tmp['instant_bookable'] = tmp['instant_bookable'].map(dict(t=1, f=0)) 
+tmp['weekly_price'] = pd.to_numeric(tmp['weekly_price'].str.replace(r'$', '').str.replace(r',', ''))
+tmp['price'] = pd.to_numeric(tmp['price'].str.replace(r'$', '').str.replace(r',', ''))
+tmp['monthly_price'] = pd.to_numeric(tmp['monthly_price'].str.replace(r'$', '').str.replace(r',', ''))
+tmp = tmp.fillna(0)
+
+# co = tmp[cotype]
+realtion = tmp.corr()
+realtion = realtion.dropna(how='all').dropna(axis=1,how='all').fillna(0)
+cotype = list(realtion)
+cotype
+#%%
+f = open("./static/data/csvname.json", encoding='utf-8')
+csvname = json.load(f)['listings.csv.gz']
+title = [csvname[i] for i in cotype]
+title
+# listing_all[['minimum_nights_avg_ntm','minimum_minimum_nights','maximum_minimum_nights', 'minimum_maximum_nights','maximum_maximum_nights']].head()

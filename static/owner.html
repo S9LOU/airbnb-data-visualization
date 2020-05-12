@@ -27,7 +27,7 @@
   let myChart = echarts.init(document.getElementById("main"));
   myChart.showLoading();
 
-  fetch('/tenant/relation')
+  fetch('/owner/relation')
   .then((response) => response.json())
   .then(function (res) {
     console.log(res)
