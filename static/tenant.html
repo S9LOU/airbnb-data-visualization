@@ -30,7 +30,7 @@
   let myChart2 = echarts.init(document.getElementById("main2"));
   myChart2.showLoading();
 
-  fetch('/tenant/relation')
+  fetch('/tenant/relation') // 与ajax请求相似
   .then((response) => response.json())
   .then(function (res) {
     console.log(res)

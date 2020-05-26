@@ -6,7 +6,10 @@ import pandas as pd
 import json
 from datetime import datetime
 import numpy as np
-
+import time
+import math
+import urllib.parse as urp
+import re
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 CORS(app)
@@ -15,6 +18,7 @@ listing_simple = pd.read_csv('./static/data/listings.csv')
 neighbourhood = pd.read_csv('./static/data/neighbourhoods.csv')
 listing_all = pd.read_csv('./static/data/detail/listings.csv')
 review_all = pd.read_csv('./static/data/detail/reviews.csv')
+station_count =  pd.read_csv('./static/data/subway_station_count.csv')
 
 csvf = open("./static/data/csvname.json", encoding='utf-8')
 cname = json.load(csvf)
@@ -41,6 +45,7 @@ def read_data_subway():
 @app.route("/neighbourhood_count",methods=["GET"])
 def get_neighbourhood_count():
     all_neighbourhood = list(neighbourhood['neighbourhood'])
+    print(all_neighbourhood)
     res = {}
     for n in all_neighbourhood:
         res[n] = len(listing_simple[listing_simple['neighbourhood']==n])
@@ -277,7 +282,16 @@ def get_owner_relation():
     title = [csvname[i] for i in cotype]
     res['ctitle'] = title
     return json.dumps(res, ensure_ascii=False)
-    
+
+@app.route("/traffic/subway_count",methods=["GET"])
+def get_subway_count():
+    sc = station_count
+    sc['count'] = sc['count'].astype("int")
+    data = []
+    for index, row in sc.iterrows():
+        data.append(row.values.tolist())
+    return json.dumps(data, ensure_ascii=False)
+
 @app.route('/')
 def index():
     return flask.send_from_directory('static', 'index.html')
@@ -302,3 +316,6 @@ app.run(host='127.0.0.1', port=8080, debug=True)
 
 
 
+
+
+# %%
