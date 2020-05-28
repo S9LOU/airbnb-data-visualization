@@ -241,3 +241,81 @@ csvname = json.load(f)['listings.csv.gz']
 title = [csvname[i] for i in cotype]
 title
 # listing_all[['minimum_nights_avg_ntm','minimum_minimum_nights','maximum_minimum_nights', 'minimum_maximum_nights','maximum_maximum_nights']].head()
+
+
+#%%
+
+f = open("./static/data/geocodeResult.json", encoding='utf-8')
+geocodeResult = json.load(f)
+geocodeResult
+#%%
+fisrt_addr = [
+    '东城区',
+    '西城区',
+    '朝阳区',
+    '丰台区',
+    '石景山区',
+    '海淀区',
+    '顺义区',
+    '通州区',
+    '大兴区',
+    '房山区',
+    '门头沟区',
+    '昌平区',
+    '平谷区',
+    '密云区',
+    '怀柔区',
+    '延庆区'
+]
+listgeo = geocodeResult['data']
+num = len(listgeo)
+busineses = []
+addresses = []
+t = []
+for i in range(num):
+    onelist = listgeo[i]
+    if onelist == None:
+        t.append(i)
+        continue
+    if onelist.get("business"):
+        butmp = onelist['business'].split(',')
+        butmp = [x for x in butmp if x != '']
+        onelist['second'] = butmp
+        busineses.extend(butmp)
+    if onelist.get("addressComponent"):
+        onelist['first'] = onelist['addressComponent']['district']
+        if onelist['addressComponent']['street'] != '':
+            addr = onelist['addressComponent']['district'] + onelist['addressComponent']['street']
+            addresses.append(addr)
+            onelist['third'] = addr
+listgeo[0]
+second_addr = list(set(busineses))
+third_addr = list(set(addresses))
+t
+#%%
+res = {}
+res['first'] = {}
+res['second'] = {}
+res['third'] = {}
+res['fisrt_addr'] = fisrt_addr
+res['second_addr'] = second_addr
+res['third_addr'] = third_addr
+
+for i in fisrt_addr:
+    res['first'][i] = {
+        "num": 0,
+        "location": '',
+    }
+
+for i in second_addr:
+    res['second'][i] = {
+        "num": 0,
+        "location": '',
+    }
+for i in third_addr:
+    res['third'][i] = {
+        "num": 0,
+        "location": '',
+    }
+
+# %%
