@@ -133,12 +133,18 @@ def get_one_listing_reviews():
     oneReviews = oneReviews[oneReviews['date'] > '2019-12-01']
     listReviews = oneReviews.values.tolist()
     resdata = []
+    smileData = []
+    sadData = []
     for i in range(len(listReviews)):
         resdata.append([listReviews[i][2], 1, listReviews[i][4], listReviews[i][5]])
+        if listReviews[i][5].find('差') !=-1 | listReviews[i][5].find('unhappy') !=-1 | listReviews[i][5].find('不满意') !=-1 | listReviews[i][5].find('生气') !=-1:
+            sadData.append([listReviews[i][2], 1, listReviews[i][4], listReviews[i][5]])
+        else:
+            smileData.append([listReviews[i][2], 1, listReviews[i][4], listReviews[i][5]])
     # TODO: 添加对评论的情感分析
     res = {
-        'smile': resdata,
-        'sad': []
+        'smile': smileData,
+        'sad': sadData
     }
     return json.dumps(res, ensure_ascii=False)
 
