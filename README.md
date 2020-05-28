@@ -5,7 +5,7 @@
 python main.py
 ```
 
-static/data/detail下面是详细信息的csv，没有传到github上，包括calendar.csv,listings.csv,reviews.csv
+static/data/detail下面是详细信息的csv，没有传到github上，包括calendar.csv,listings.csv,reviews.csv,geocodeResult.json
 
 ### 目录结构  
 │&emsp;.gitignore  
@@ -35,6 +35,7 @@ static/data/detail下面是详细信息的csv，没有传到github上，包括ca
 &emsp;│&emsp;│&emsp;  calendar.csv&emsp;#详细日历信息 未上传  
 &emsp;│&emsp;│&emsp;  listings.csv&emsp;#详细房源信息 未上传  
 &emsp;│&emsp;│&emsp;  reviews.csv&emsp;#详细评价信息 未上传  
+&emsp;│&emsp;│&emsp;  geocodeResult.json&emsp;main启动不需要 未上传
 &emsp;│&emsp;│  
 &emsp;│&emsp;└─pic  
 &emsp;│  

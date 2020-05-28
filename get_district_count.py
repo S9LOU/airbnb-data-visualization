@@ -1,6 +1,6 @@
 
 import json
-f = open("./static/data/geocodeResult.json", encoding='utf-8')
+f = open("./static/data/detail/geocodeResult.json", encoding='utf-8')
 geocodeResult = json.load(f)
 geocodeResult
 #%%
