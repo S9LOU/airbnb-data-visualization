@@ -30,12 +30,17 @@ static/data/detail下面是详细信息的csv，没有传到github上，包括ca
 &emsp;│&emsp;│&emsp;subway.json&emsp;&emsp;   #高德地图下载的地铁信息  
 &emsp;│&emsp;│&emsp;subwayTime.json&emsp;   #高德地图下载的地铁信息  
 &emsp;│&emsp;│&emsp;tenant_wordcount.json&emsp;#处理得到的租客词云  
+&emsp;│&emsp;│&emsp;first_location.csv&emsp;#处理得到的区坐标以及统计数量  
+&emsp;│&emsp;│&emsp;second_location.csv&emsp;#处理得到的商圈坐标以及统计数  
+&emsp;│&emsp;│&emsp;third_location.csv&emsp;#处理得到的街道坐标以及统计数  
+&emsp;│&emsp;│&emsp;station_lng_lat.csv&emsp;#地铁站位置  
+&emsp;│&emsp;│&emsp;stations.csv&emsp;#处理得到地铁站信息  
 &emsp;│&emsp;│  
 &emsp;│&emsp;├─detail  
 &emsp;│&emsp;│&emsp;  calendar.csv&emsp;#详细日历信息 未上传  
 &emsp;│&emsp;│&emsp;  listings.csv&emsp;#详细房源信息 未上传  
 &emsp;│&emsp;│&emsp;  reviews.csv&emsp;#详细评价信息 未上传  
-&emsp;│&emsp;│&emsp;  geocodeResult.json&emsp;main启动不需要 未上传
+&emsp;│&emsp;│&emsp;  geocodeResult.json&emsp;main启动不需要 未上传  
 &emsp;│&emsp;│  
 &emsp;│&emsp;└─pic  
 &emsp;│  
