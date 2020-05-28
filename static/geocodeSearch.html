@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<title>批量反地址解析+商圈</title>
+	<style type="text/css">
+		/* body, html{width: 100%;height: 100%;margin:0;font-family:"微软雅黑";}
+		#l-map{height:300px;width:100%;}
+		#r-result{width:100%; font-size:14px;line-height:20px;} */
+        #container{height:100%}
+    </style>
+    <!-- 引入 ECharts 文件 -->    
+    <!-- <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=bz0r4Ll43eF7Ruhb8Q4Xm7uHQmQ8GpBG"></script> -->
+    <!-- <script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=CHMKtgBvVzGBKtM9ayW5f0zLOpZYrtVH"></script> -->
+    <!-- <script type="text/javascript" src="http://api.map.baidu.com/api?type=subway&v=1.0&ak=bz0r4Ll43eF7Ruhb8Q4Xm7uHQmQ8GpBG"></script> -->
+    <script type="text/javascript" src="//api.map.baidu.com/api?type=subway&v=1.0&ak=bz0r4Ll43eF7Ruhb8Q4Xm7uHQmQ8GpBG"></script>
+    <script src="https://cdn.bootcss.com/FileSaver.js/2014-11-29/FileSaver.js"></script>
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/echarts.min.js"></script>
+    <script src="/static/js/dark.js"></script>
+    <script src="/static/js/router.js"></script>
+    <script src="/static/js/homeOptionInit.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts-stat/dist/ecStat.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/extension/dataTool.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/map/js/china.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/map/js/world.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/extension/bmap.min.js"></script>
+</head>
+<body>
+	<!-- <div id="l-map"></div>
+	<div id="r-result">
+		<input type="button" value="批量反地址解析+商圈"  />
+		<div id="result"></div>
+    </div> -->
+    <div id="container"></div>
+</body>
+</html>
+<script type="text/javascript">
+	// 百度地图API功能
+	// var index = 0;
+	// var myGeo = new BMap.Geocoder();
+	// var pointsList = [
+	// 	new BMap.Point(116.307852,40.057031),
+	// 	new BMap.Point(116.313082,40.047674),
+	// 	new BMap.Point(116.328749,40.026922),
+	// 	new BMap.Point(116.347571,39.988698),
+	// 	new BMap.Point(116.316163,39.997753),
+	// 	new BMap.Point(116.345867,39.998333),
+	// 	new BMap.Point(116.403472,39.999411),
+	// 	new BMap.Point(116.307901,40.05901)
+    // ];
+    
+    // getPoints();
+    getSubwayList();
+
+    // visuldata ={data: [{ "name": "地铁2号线"},{ "name": "地铁1号线"}]};
+    // visulname = 'czw'
+    // savefile(visuldata,visulname);//没写好
+    function saveHandler(data,filename){
+        var content = JSON.stringify(data);
+        var blob = new Blob([content], {type: "text/plain;charset=utf-8"});
+        saveAs(blob, filename);
+    }
+    function savefile(data,filename){
+        // let jsonData= {
+        //     filename:filename,
+        //     data:data
+        // };
+        settings = {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            // body:JSON.stringify(jsonData),
+        };
+        let url = 'save_file';
+        // let filename = 'subwaylines.json';
+        // var data = getSubwayList()
+        console.log(JSON.stringify(data));
+        
+        if (filename && data) {
+            url = url + '?filename=' + filename + '&data=' + JSON.stringify(data)
+            console.log(url)
+        }
+        else if (filename) {
+            url = url + '?filename=' + filename
+        }
+        else if (data) {
+            url = url + '?data=' + JSON.stringify(data)
+        }
+
+        fetch(url, settings)
+        .then(data => console.log(data)) // JSON from `response.json()` call
+        .catch(error => console.error(error))
+    }
+    
+    function geocodeSearch(adds){
+        let jsonData =[];
+        console.log("adds:",adds);
+        var index;
+        for(index=0;index<adds.length;index++){
+            var pt = adds[index][0];
+            var id = adds[index][1];
+            myGeo.getLocation(pt, function(rs){
+            //保存格式:id,lng,lat,addressComponents,business
+            rs['id'] = id;
+            console.log("++++++++++++rs",rs);
+            jsonData.push(rs);
+            });        
+        }
+        return jsonData;    
+    }
+    
+	function getPoints(region, bounds){
+        const settings = {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        }
+        };
+        let url = 'location_simple_data'
+        if (region && bounds) {
+            url = url + '?region=' + region + '&bounds=' + bounds
+        }
+        else if (region) {
+            url = url + '?region=' + region
+        }
+        else if (bounds) {
+            url = url + '?bounds=' + bounds
+        }
+        fetch(url, settings)
+        .then((response) => response.json())
+        .then(function (res) {
+            let pointData = res.data;
+            pointData =  [[116.45088999999999, 39.89425, 44054.0], [117.17231000000001, 40.68434, 100213.0], [116.46569, 39.906259999999996, 103749.0], [116.46551000000001, 39.90487, 114371.0], [116.46569, 39.90495, 114377.0], [116.46372, 39.904740000000004, 114384.0], [116.42253999999998, 39.93235, 128496.0], [116.43576999999999, 39.93357, 161902.0], [116.43798000000001, 39.936679999999996, 162144.0], [116.4344, 39.93919, 279078.0], [116.45088999999999, 39.93712, 282825.0], [116.44122, 39.94115, 287026.0], [116.4344, 39.93916, 317195.0], [116.44066000000001, 39.93849, 322292.0], [116.41837, 39.91342, 445306.0], [116.44248, 39.93848, 456641.0], [116.44128, 39.93967, 458561.0], [116.43682, 39.935159999999996, 491280.0], [116.44175, 39.94059, 498126.0], [116.37063, 39.92412, 537674.0], [116.4412, 39.938790000000004, 554123.0], [116.34886999999999, 39.94956, 627240.0], [116.48100000000001, 39.90039, 685820.0], [116.3892, 39.85983, 732687.0], [116.34326000000001, 39.94612, 762579.0], [116.37143999999999, 39.92058, 818559.0], [116.36376000000001, 39.9181, 818560.0], [116.48369, 39.8996, 824570.0], [116.39128999999998, 39.939, 829407.0], [116.39093999999999, 39.93923, 851984.0], [116.39161000000001, 39.93946, 855090.0], [117.17303999999999, 40.68602, 873692.0], [116.39265, 39.94632, 906434.0], [116.54955, 40.1044, 940126.0], [116.42345, 39.93994, 975146.0], [116.43791999999999, 39.94012, 1001527.0], [116.43427, 39.93906, 1087381.0], [116.43598999999999, 39.90425, 1115437.0], [116.42236000000001, 39.92088, 1198579.0], [116.45088999999999, 39.89425, 1276777.0], [116.49936000000001, 39.993809999999996, 1285333.0], [116.42053999999999, 39.92062, 1302948.0], [116.58165, 40.06564, 1431859.0], [116.52235, 39.92575, 1484562.0], [116.49683999999999, 39.94829, 1521874.0], [116.39263999999999, 39.93793, 1543047.0], [116.4836, 40.00121, 1635589.0], [116.44523999999998, 39.883390000000006, 1643534.0], [116.36991, 39.92553, 1661849.0], [116.43438, 39.89326, 1694369.0], [116.49723999999999, 39.97983, 1777848.0], [116.30165, 39.955999999999996, 1784379.0], [116.42196000000001, 39.9406, 1787002.0], [116.43683999999999, 39.936009999999996, 1787751.0], [116.60723999999999, 39.89265, 1834479.0], [116.50903000000001, 39.98808, 1834587.0], [116.40404, 39.92277, 1900447.0], [116.33663999999999, 39.975359999999995, 1925662.0], [116.33713999999999, 39.978320000000004, 1941773.0], [116.33856999999999, 39.980470000000004, 1941997.0], [116.33691999999999, 39.97889, 1942067.0], [116.43435, 39.939029999999995, 2022824.0], [116.33968, 39.97752, 2029856.0], [116.42238, 39.92176, 2077431.0], [116.45213000000001, 39.89905, 2095350.0], [116.29503000000001, 39.92661, 2139790.0], [116.51506, 39.93023, 2190095.0], [116.30751000000001, 39.89587, 2229512.0], [116.44018999999999, 39.94102, 2432965.0], [116.44458, 39.94019, 2433033.0], [116.44197, 39.94138, 2433122.0], [116.41085, 39.94728, 2540862.0], [116.53817, 40.37722, 2556768.0], [116.48241999999999, 39.97475, 2634250.0], [116.56315, 40.090309999999995, 2717860.0], [116.5684, 40.07707, 2719982.0], [116.38618000000001, 39.90159, 2757683.0], [116.45088999999999, 39.89425, 2779504.0], [116.45088999999999, 39.89425, 2779901.0], [116.54511000000001, 40.473290000000006, 2797791.0], [116.34342, 40.00554, 2834282.0], [116.44525, 39.93528, 2889922.0], [116.31588, 39.993120000000005, 2989696.0], [116.4258, 40.07033, 3015545.0], [116.73716, 40.08659, 3069570.0], [116.46785, 39.95026, 3077753.0], [116.40773999999999, 39.915079999999996, 3105131.0], [116.46381000000001, 39.93564, 3114942.0], [116.45362, 39.95108, 3116888.0], [116.55588, 39.824659999999994, 3139576.0], [116.4503, 39.89394, 3200395.0], [116.56393, 39.989259999999994, 3211028.0], [116.57727, 39.909240000000004, 3387246.0], [116.29498000000001, 40.045429999999996, 3416332.0], [116.58758999999999, 39.92102, 3429464.0], [116.456, 39.923159999999996, 3499185.0], [116.50636000000002, 39.9234, 3518354.0], [116.46043, 39.8853, 3571646.0], [116.33733000000001, 39.99086, 3649223.0]];
+            let ret = []
+            for (var i = 0; i < pointData.length; i++) {
+                // console.log(" pointData.length", pointData.length);
+                datarow =pointData[i];
+                row = [];
+                let newPoint =new BMap.Point(datarow[0],datarow[1]);
+                row.push(newPoint);
+                row.push(datarow[2]);
+                ret.push(row);
+            }
+            pointsList = ret;
+            jsonData =  geocodeSearch(pointsList);//输入点的object,输出最终结果
+            jsonData = {data:jsonData};//最终保存的文件
+            console.log("jsonData",jsonData.data);
+            
+        });
+    }
+    function getSubwayList(){
+        /**
+        * 从所有城市列表中获取北京信息
+        * 结果格式
+        * {
+        *     keyword: 'beijing',
+        *     name: '北京',
+        *     citycode: '131'
+        * }
+        */
+        /* globals BMapSub */
+        var subwayCityName = '北京';
+        var list = BMapSub.SubwayCitiesList;
+        var subwaycity = null;
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].name === subwayCityName) {
+                subwaycity = list[i];
+                break;
+            }
+        }
+        // 获取北京地铁数据-初始化地铁图
+        var subway = new BMapSub.Subway('container', subwaycity.citycode);
+        var zoomControl  = new BMapSub.ZoomControl({
+            anchor: BMAPSUB_ANCHOR_BOTTOM_RIGHT,
+            offset: new BMapSub.Size(10,100)
+        });
+        subway.addControl(zoomControl);
+        subway.addEventListener('subwayloaded', function() {
+            // var detail = new BMapSub.DetailInfo(subway);
+            // detail.search('西直门');
+            // alert('地铁图加载完成');
+            var Lines = subway.getLines();
+            console.log("Lines",Lines);
+            Lines={data:Lines};
+            saveHandler(Lines,'subway_line_end.json');
+        });
+    }
+   
+</script>
+
+

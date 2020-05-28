@@ -27,10 +27,7 @@
         <div class="col-md-6" style="width:50%;float:left;overflow:hidden;">
             <div id="heatMapChart" style="width: 100%; height: 750px;"></div>
         </div>
-    
-
-
-
+    </div>
   </body>
 </html>
 <script>
@@ -60,8 +57,9 @@ fetch("/traffic/subway_count")
       })
       myChart2.hideLoading();
       initHeatMapOption(myChart2);
-
-
+      myChart2.on('click', function(params) {
+          console.log(params);
+      })
       bmap = myChart.getModel().getComponent('bmap').getBMap();
       bmap.setMinZoom(10);
       bmap.setMaxZoom(14);    
@@ -82,16 +80,32 @@ fetch("/traffic/subway_count")
     });
 
 var convertData = function (data) {
-    var res = [];
-    for (var i = 0; i < data.length; i++) {
-        var row = data[i];
+    var res1 = [];
+    var res2 = [];
+    console.log(data);
+    //处理subway_count
+    subway_count = data['subway_count']
+    for (var i = 0; i < subway_count.length; i++) {
+        var row = subway_count[i];
         if (row) {
-            res.push({
+            res1.push({
                 name: row[0],
                 value: row.slice(1,4)
             });
         }
     }
+    //处理per_subwayline_homenumber
+    per_subwayline_homenumber = data['per_subwayline_homenumber']
+    for (var i = 0; i < per_subwayline_homenumber.length; i++) {
+        var row = per_subwayline_homenumber[i];
+        if (row) {
+            res2.push({
+                name: row[0],
+                value: row[1]
+            });
+        }
+    }
+    res = {"subway_count":res1,"per_subwayline_homenumber":res2}
     console.log(res);
     // data = res.sort(function (a, b) {
     //             return b.value[2] - a.value[2];
@@ -169,6 +183,10 @@ function initEffectScatterMap(myChart,data){
     tooltip : {
         trigger: 'item'
     },
+    // grid: {
+    //     top: '10%',
+    //     bottom: 100,
+    // },
     toolbox: {
           itemSize: 26,
           itemGap: 22,
@@ -196,9 +214,10 @@ function initEffectScatterMap(myChart,data){
           }
         },
     bmap: {
-        center: [116.44018999999999, 39.93046],
+        center: [116.468337,39.939382],
         zoom: 13,
         roam: true,
+        top:100,
         mapStyle: {
             styleJson: [{
                 'featureType': 'water',
@@ -304,12 +323,12 @@ function initEffectScatterMap(myChart,data){
     },
     series : [
         {
-            name: '当前地铁站2km范围内民宿数量',
+            name: '一公里内房屋数量',
             type: 'scatter',
             coordinateSystem: 'bmap',
-            data: data,
+            data: data['subway_count'],
             symbolSize: function (val) {
-                return val[2] / 50;
+                return val[2] / 15;
             },
             encode: {
                 value: 2
@@ -332,11 +351,11 @@ function initEffectScatterMap(myChart,data){
             name: 'Top 5',
             type: 'effectScatter',
             coordinateSystem: 'bmap',
-            data: data.sort(function (a, b) {
+            data: data['subway_count'].sort(function (a, b) {
                 return b.value[2] - a.value[2];
-            }).slice(0, 6),
+            }).slice(0, 5),
             symbolSize: function (val) {
-                return val[2] / 50;
+                return val[2] / 15;
             },
             encode: {
                 value: 2
@@ -357,7 +376,32 @@ function initEffectScatterMap(myChart,data){
                 shadowColor: '#333'
             },
             zlevel: 1
-        }
+        },
+        {
+            name: '地铁线附近数量',
+            type: 'pie',
+            radius: '20%',
+            center: ['80%', '22%'],
+            data: data['per_subwayline_homenumber']
+            .sort(function (a, b) { return a.value - b.value; }),
+            emphasis: {
+                itemStyle: {
+                    shadowBlur: 10,
+                    shadowOffsetX: 0,
+                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+            }, 
+            label: {
+                    position: 'outer',
+                    alignTo: 'edge',
+                    margin: 20
+                },
+            left: '66.6667%',
+            right: 0,
+            top: 0,
+            bottom: 0
+                    
+                }
     ]
 };
 return option;

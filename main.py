@@ -18,10 +18,13 @@ listing_simple = pd.read_csv('./static/data/listings.csv')
 neighbourhood = pd.read_csv('./static/data/neighbourhoods.csv')
 listing_all = pd.read_csv('./static/data/detail/listings.csv')
 review_all = pd.read_csv('./static/data/detail/reviews.csv')
-station_count =  pd.read_csv('./static/data/subway_station_count.csv')
+station_count =  pd.read_csv('./static/data/subway_station_count_1km.csv')
 
 csvf = open("./static/data/csvname.json", encoding='utf-8')
 cname = json.load(csvf)
+
+csvf = open("./static/data/per_subwayline_home_number.json", encoding='utf-8')
+per_subwayline_homenumber = json.load(csvf)
 
 @app.route("/geojson",methods=["GET"])
 def read_data():
@@ -76,6 +79,30 @@ def get_location_data():
     res['data'] = tmp.values.tolist()
     return json.dumps(res, ensure_ascii=False)
 
+@app.route("/location_simple_data",methods=["GET"])
+def get_location_simple_data():
+    region = request.args.get('region')
+    bounds = request.args.get('bounds')
+    cols = list(listing_simple)
+    cols.insert(0,cols.pop(cols.index('longitude')))
+    cols.insert(1,cols.pop(cols.index('latitude')))
+    res = {}
+    tmp = listing_simple.loc[:,cols]
+    tmp = tmp.dropna(axis=0,how='all').fillna(0)
+    print("region:",region)
+    if region != None:
+        tmp = tmp[tmp['neighbourhood'].str.contains(region)]
+    if bounds != None:
+        bounds = bounds.split(',')
+        bounds = [float(i) for i in bounds]
+        leftlong = bounds[0]
+        rightlong = bounds[1]
+        bottomlat = bounds[2]
+        toplat = bounds[3]
+        tmp = tmp[(tmp['longitude'] < rightlong) & (tmp['longitude'] > leftlong) & (tmp['latitude'] > bottomlat) & (tmp['latitude'] < toplat)]
+    tmp = tmp[['longitude','latitude','id']]
+    res['data'] = tmp.values.tolist()
+    return json.dumps(res, ensure_ascii=False)
 
 @app.route("/location_data_title",methods=["GET"])
 def get_location_data_title():
@@ -290,12 +317,26 @@ def get_subway_count():
     data = []
     for index, row in sc.iterrows():
         data.append(row.values.tolist())
+    data = {"subway_count":data,"per_subwayline_homenumber":per_subwayline_homenumber}
     return json.dumps(data, ensure_ascii=False)
+
+@app.route("/save_file",methods=["POST"])
+def save_file():
+    filename = request.args.get('filename')
+    data = request.args.get('data')
+    print("--------------------filename:",filename)
+    print("--------------------data:",data)
+    # data = json.loads(data)
+    # filename = json.loads(filename)
+    print(data)
+    file = open('./static/data/'+filename+'.json','w',encoding='utf-8')
+    json.dump(data,file,ensure_ascii=False) 
+    file.close()
+    return 'welcome'
 
 @app.route('/')
 def index():
     return flask.send_from_directory('static', 'index.html')
-
 
 @app.route('/tenant')
 def tenant():
@@ -305,11 +346,13 @@ def tenant():
 def owner():
     return flask.send_from_directory('static', 'owner.html')
 
-
 @app.route('/traffic')
 def traffic():
     return flask.send_from_directory('static', 'traffic.html')
 
+@app.route('/geocodeSearch')
+def geocodeSearch():
+    return flask.send_from_directory('static', 'geocodeSearch.html')
 
 app.run(host='127.0.0.1', port=8080, debug=True)
 
