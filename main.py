@@ -20,10 +20,6 @@ listing_all = pd.read_csv('./static/data/detail/listings.csv')
 review_all = pd.read_csv('./static/data/detail/reviews.csv')
 station_count =  pd.read_csv('./static/data/subway_station_count_1km.csv')
 
-first_location = pd.read_csv('./static/data/first_location.csv')
-second_location = pd.read_csv('./static/data/second_location.csv')
-third_location = pd.read_csv('./static/data/third_location.csv')
-
 csvf = open("./static/data/csvname.json", encoding='utf-8')
 cname = json.load(csvf)
 
@@ -332,6 +328,9 @@ def get_subway_count():
 
 @app.route("/three_locations",methods=["GET"])
 def get_three_location():
+    first_location = pd.read_csv('./static/data/first_location.csv')
+    second_location = pd.read_csv('./static/data/second_location.csv')
+    third_location = pd.read_csv('./static/data/third_location.csv')
     first_location_data = []
     for index, row in first_location.iterrows():
         first_location_data.append(row.values.tolist())
