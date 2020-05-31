@@ -25,7 +25,7 @@
     <div
       id="main"
       class="chart"
-      style="margin-left: 0%; width: 100%; height: 700px;"
+      style="margin-left: 0%; width: 100%; height: 100%;"
     ></div>
 
     <div id="hidebg"></div>
@@ -48,19 +48,19 @@
         <div class="text">主页</div>
       </div>
       <div  onClick=initBefore()>
-        <img src="/static/data/pic/还原.svg" class="icon"></img>
+        <img src="/static/data/pic/还原.png" class="icon"></img>
         <div class="text">还原</div>
       </div>
       <div  onClick=goTraffic()>
-        <img src="/static/data/pic/车辆.svg" class="icon"></img>
+        <img src="/static/data/pic/交通.png" class="icon"></img>
         <div class="text">交通</div>
       </div>
       <div  onClick=goTenant()>
-        <img src="/static/data/pic/租客.svg" class="icon"></img>
+        <img src="/static/data/pic/租客.png" class="icon"></img>
         <div class="text">租客</div>
       </div>
       <div  onClick=goOwner()>
-        <img src="/static/data/pic/房东.svg" class="icon"></img>
+        <img src="/static/data/pic/房东.png" class="icon"></img>
         <div class="text">房东</div>
       </div>
     </div>
@@ -986,7 +986,7 @@
   body {
     margin: 0px;
     /* background-color: rgba(0, 1, 3, 0.623); */
-    background-color: rgba(51,51,51,1);
+    /* background-color: rgba(51,51,51,1); */
   }
 
   .btn {
@@ -1087,19 +1087,24 @@
     height: 30px;
     margin-top:10px;
     cursor: pointer;
+    color:#515151;
   }
 
   .text {
     padding-top: 35px;
     cursor: pointer;
+    color :	#333333;
 
   }
   .title {
     position: absolute;
     z-index: 6;
     top:10px;
-    left:45%;
+    left:43.333%;
+    /* text-align : center; */
     font-size: 24px ;
+    color: #333333;
+    font-weight: 800;
 
   }
 </style>
