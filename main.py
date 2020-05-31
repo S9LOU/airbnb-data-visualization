@@ -20,6 +20,10 @@ listing_all = pd.read_csv('./static/data/detail/listings.csv')
 review_all = pd.read_csv('./static/data/detail/reviews.csv')
 station_count =  pd.read_csv('./static/data/subway_station_count_1km.csv')
 
+first_location = pd.read_csv('./static/data/first_location.csv')
+second_location = pd.read_csv('./static/data/second_location.csv')
+third_location = pd.read_csv('./static/data/third_location.csv')
+
 csvf = open("./static/data/csvname.json", encoding='utf-8')
 cname = json.load(csvf)
 
@@ -326,6 +330,22 @@ def get_subway_count():
     data = {"subway_count":data,"per_subwayline_homenumber":per_subwayline_homenumber}
     return json.dumps(data, ensure_ascii=False)
 
+@app.route("/three_locations",methods=["GET"])
+def get_three_location():
+    first_location_data = []
+    for index, row in first_location.iterrows():
+        first_location_data.append(row.values.tolist())
+
+    second_location_data = []
+    for index, row in second_location.iterrows():
+        second_location_data.append(row.values.tolist())
+        
+    third_location_data = []
+    for index, row in third_location.iterrows():
+        third_location_data.append(row.values.tolist())
+    data = {"first_location":first_location_data,"second_location":second_location_data,"third_location":third_location_data}
+    return json.dumps(data, ensure_ascii=False)
+
 @app.route("/save_file",methods=["POST"])
 def save_file():
     filename = request.args.get('filename')
@@ -360,6 +380,9 @@ def traffic():
 def geocodeSearch():
     return flask.send_from_directory('static', 'geocodeSearch.html')
 
+@app.route('/bubbleMap')
+def bubbleMap():
+    return flask.send_from_directory('static', 'bubbleMap.html')
 app.run(host='127.0.0.1', port=8080, debug=True)
 
 
