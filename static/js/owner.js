@@ -1,4 +1,10 @@
-
+var colorlist = [
+    "#dd6b66","#759aa0","#e69d87","#8dc1a9","#ea7e53","#eedd78","#73a373","#73b9bc",
+    "#7289ab","#91ca8c","#f49f42","#893448","#d95850","#eb8146","#ffb248","#f2d643",
+    "#ebdba4",'#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026',
+    "#fc97af","#87f7cf","#f7f494","#72ccff","#f7c5a0","#d4a4eb","#d2f5a6","#76f2f2",
+    "#c12e34","#e6b600","#0098d9","#2b821d","#005eaa","#339ca8","#cda819","#32a487"
+];
 function init_relation_option(maskImage, title, data, worddata){
 
   
@@ -110,11 +116,12 @@ function init_relation_option(maskImage, title, data, worddata){
                 normal: {
                     color: function () {
                         // Random color
-                        const col = 'rgb(' + [
-                            Math.round(Math.random() * 255),
-                            Math.round(Math.random() * 255),
-                            Math.round(Math.random() * 255)
-                        ].join(',') + ')';
+                        // const col = 'rgb(' + [
+                        //     Math.round(Math.random() * 255),
+                        //     Math.round(Math.random() * 255),
+                        //     Math.round(Math.random() * 255)
+                        // ].join(',') + ')';
+                        const col = colorlist[Math.floor(Math.random() * colorlist.length)];
                         return col
                     }
                 },
