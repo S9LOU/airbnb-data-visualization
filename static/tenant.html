@@ -20,15 +20,15 @@
   </head>
   <body>
     <!-- <div id="main" class="chart" style="width: 100%; height: 450px;"></div> -->
-    <div id="main" class="chart" style="margin-left:5%;width: 90%; height: 450px;"></div>
-    <div id="main2" class="chart" style="margin-left:5%;width: 90%; height: 650px;"></div>
+    <div id="main" class="chart" style="margin-left:5%;width: 90%; height: 600px;"></div>
+    <!-- <div id="main2" class="chart" style="margin-left:5%;width: 90%; height: 650px;"></div> -->
   </body>
 </html>
 <script>
   let myChart = echarts.init(document.getElementById("main"));
   myChart.showLoading();
-  let myChart2 = echarts.init(document.getElementById("main2"));
-  myChart2.showLoading();
+  // let myChart2 = echarts.init(document.getElementById("main2"));
+  // myChart2.showLoading();
 
   fetch('/tenant/relation') // 与ajax请求相似
   .then((response) => response.json())
@@ -48,9 +48,9 @@
     console.log(option)
   })
 
-  const option2 = init_calendar_option()
-  myChart2.hideLoading()
-  myChart2.setOption(option2)
+  // const option2 = init_calendar_option()
+  // myChart2.hideLoading()
+  // myChart2.setOption(option2)
 
 </script>
 <style>

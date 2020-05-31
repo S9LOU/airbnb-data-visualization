@@ -131,3 +131,82 @@ function init_relation_option(maskImage, title, data, worddata){
     return option;
 }
 
+
+
+function makeParallelAxis(schema) {
+  var parallelAxis = [];
+  for (var i = 1; i < schema.length; i++) {
+      parallelAxis.push({dim: i, name: schema[i]});
+  }
+  return parallelAxis;
+}
+
+function initParallelOption(pointTitle, data) {
+  option = {
+    parallelAxis: makeParallelAxis(pointTitle),
+    parallel: {
+        top: '10%',
+        left: '5%',
+        right: '5%',
+        bottom: '30%',
+        axisExpandable: true,
+        axisExpandCenter: 15,
+        axisExpandCount: 10,
+        axisExpandWidth: 60,
+        axisExpandTriggerOn: 'mousemove',
+
+        z: 100,
+        parallelAxisDefault: {
+            type: 'value',
+            nameLocation: 'start',
+            nameRotate: 30,
+            // nameLocation: 'end',
+            nameTextStyle: {
+              color: '#bbb',
+                fontSize: 12
+            },
+            nameTruncate: {
+                maxWidth: 170
+            },
+            nameGap: 20,
+            splitNumber: 3,
+            tooltip: {
+                show: true
+            },
+            axisLine: {
+                // show: false,
+                lineStyle: {
+                    width: 1,
+                    color: 'rgba(255,255,255,0.5)'
+                }
+            },
+            axisTick: {
+                show: false
+            },
+            axisLabel: {
+                color: '#bbb'
+            },
+            splitLine: {
+                show: false
+            },
+            z: 100
+        }
+    },
+    series: [
+        {
+            name: 'parallel',
+            type: 'parallel',
+            smooth: true,
+            lineStyle: {
+                color: '#577ceb',
+                width: 0.5,
+                opacity: 0.4
+            },
+            z: 100,
+            blendMode: 'lighter',
+            data: data
+        }
+    ]
+  };
+  return option;
+}

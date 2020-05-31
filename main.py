@@ -361,7 +361,7 @@ def save_file():
 
 @app.route('/')
 def index():
-    return flask.send_from_directory('static', 'index.html')
+    return flask.send_from_directory('static', 'bubbleMap.html')
 
 @app.route('/tenant')
 def tenant():
